@@ -1,0 +1,51 @@
+group 'nd.nn'
+version '1.0-SNAPSHOT'
+
+apply from: "http://dl.bintray.com/content/shemnon/javafx-gradle/0.3.0/javafx.plugin"
+
+apply plugin: 'application'
+apply plugin: 'java'
+
+
+targetCompatibility = 1.8
+sourceCompatibility = 1.8
+
+dependencies {
+    compile 'org.encog:encog-core:3.2.0'
+    compile 'org.apache.commons:commons-csv:1.1'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/java'
+        }
+        resources {
+            srcDir 'src/resources'
+        }
+    }
+}
+
+javafx {
+    javaRuntime = '/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk'
+
+    appID 'stdPer'
+    appName 'StudentPerApp'
+    mainClass 'nd.nn.stdper.HelloWorld'
+
+}
+
+test {
+    onOutput { descriptor, event ->
+        logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+    }
+}
+
+mainClassName = "nd.nn.stdper.HelloWorld"
+
+

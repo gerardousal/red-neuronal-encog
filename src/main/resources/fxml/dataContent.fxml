@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="620.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="nd.nn.stdper.view.DataContentController">
+  <children>
+    <TableView fx:id="dataTable" prefHeight="333.0" prefWidth="572.0" AnchorPane.bottomAnchor="234.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="53.0" />
+    <TableView fx:id="columnTable" prefHeight="200.0" prefWidth="572.0" AnchorPane.bottomAnchor="22.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+    <Button fx:id="btnTrain" layoutY="22.0" mnemonicParsing="false" text="Train" AnchorPane.rightAnchor="88.0" />
+    <TextField fx:id="txtTrain" layoutY="21.0" prefWidth="67.0" promptText="train%" AnchorPane.rightAnchor="14.0" />
+  </children>
+</AnchorPane>
