@@ -36,6 +36,8 @@ public class DataContentController implements Initializable {
     TableView dataTable;
     @FXML
     TableView columnTable;
+    @FXML
+    TextField txtHidden;
 
     TrainService trainService;
     ResultController resultController;
@@ -68,6 +70,7 @@ public class DataContentController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         trainService = new TrainService();
         txtTrain.setText("50");
+        txtHidden.setText("20");
         configColumnTable();
         AnchorPane resultPane = getResultPane();
         Stage resultStage = new Stage();
@@ -77,16 +80,16 @@ public class DataContentController implements Initializable {
             ObservableList<InputColumn> inputColumns = columnTable.getItems();
             tabularData.metaTabularData.inputs = inputColumns.stream().filter(input -> input.getIsInput()).map(input -> input.getName()).collect(Collectors.toList());
             tabularData.metaTabularData.outputs = inputColumns.stream().filter(input -> input.getIsOutput()).map(input -> input.getName()).collect(Collectors.toList());
-            System.out.println("input:"+Arrays.toString(tabularData.metaTabularData.inputs.toArray()));
-            System.out.println("output:"+Arrays.toString(tabularData.metaTabularData.outputs.toArray()));
+            System.out.println("input s: " + tabularData.metaTabularData.inputs.size() + " d:"+Arrays.toString(tabularData.metaTabularData.inputs.toArray()));
+            System.out.println("output s: " + tabularData.metaTabularData.outputs.size() + " d:"+Arrays.toString(tabularData.metaTabularData.outputs.toArray()));
             trainService.setTabularData(tabularData);
             trainService.setTrainPercentage(Double.parseDouble(txtTrain.getText()));
-            trainService.setNeuralNetworkConfigData(NeuralNetworkConfigData.defaultNeuralNetworkConfigData(tabularData.metaTabularData.inputs.size()));
+            trainService.setNeuralNetworkConfigData(NeuralNetworkConfigData.defaultNeuralNetworkConfigData(Integer.valueOf(txtHidden.getText())));
             trainService.start();
         });
         trainService.setOnSucceeded(event -> {
             ResultData trainResult = (ResultData) event.getSource().getValue();
-            resultController.setTrainResult(trainResult.getTrainResult(), trainResult.getTrainError());
+            resultController.setTrainResult(trainResult.getTrainResult(), trainResult.getValidationResult(), trainResult.getTrainError());
             resultStage.show();
         });
     }

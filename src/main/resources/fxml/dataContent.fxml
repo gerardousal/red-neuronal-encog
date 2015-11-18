@@ -10,7 +10,8 @@
   <children>
     <TableView fx:id="dataTable" prefHeight="333.0" prefWidth="572.0" AnchorPane.bottomAnchor="234.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="53.0" />
     <TableView fx:id="columnTable" prefHeight="200.0" prefWidth="572.0" AnchorPane.bottomAnchor="22.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
-    <Button fx:id="btnTrain" layoutY="22.0" mnemonicParsing="false" text="Train" AnchorPane.rightAnchor="88.0" />
+    <Button fx:id="btnTrain" layoutY="21.0" mnemonicParsing="false" text="Train" AnchorPane.rightAnchor="174.0" />
     <TextField fx:id="txtTrain" layoutY="21.0" prefWidth="67.0" promptText="train%" AnchorPane.rightAnchor="14.0" />
+    <TextField fx:id="txtHidden" layoutX="436.0" layoutY="21.0" prefWidth="76.0" promptText="neuronas ocultas" />
   </children>
 </AnchorPane>

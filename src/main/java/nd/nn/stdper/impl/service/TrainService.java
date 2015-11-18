@@ -4,7 +4,9 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import nd.nn.stdper.impl.domain.*;
 
+import org.encog.engine.network.activation.ActivationBiPolar;
 import org.encog.engine.network.activation.ActivationSigmoid;
+import org.encog.engine.network.activation.ActivationSoftMax;
 import org.encog.mathutil.error.ErrorCalculation;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
@@ -40,15 +42,6 @@ public class TrainService extends Service<ResultData> {
         this.neuralNetworkConfigData = neuralNetworkConfigData;
     }
 
-    public static double XOR_INPUT[][] = {{0.0, 0.0},
-            {1.0, 0.0},
-            {0.0, 1.0},
-            {1.0, 1.0}};
-    public static double XOR_IDEAL[][] = {{0.0},
-            {1.0},
-            {1.0},
-            {0.0}};
-
     @Override
     protected Task<ResultData> createTask() {
         return new Task<ResultData>() {
@@ -66,6 +59,7 @@ public class TrainService extends Service<ResultData> {
             network.addLayer(new BasicLayer(neuralNetworkLayerData.activationFunction, neuralNetworkLayerData.bias, neuralNetworkLayerData.count));
         }
         network.addLayer(new BasicLayer(networkConfigData.function, false, tabularData.metaTabularData.outputs.size()));
+        //network.addLayer(new BasicLayer(new ActivationSoftMax(), false, tabularData.metaTabularData.outputs.size()));
         network.getStructure().finalizeStructure();
         network.reset();
         return network;
@@ -75,26 +69,18 @@ public class TrainService extends Service<ResultData> {
         System.out.println("start training");
         int trainCount = (int) (trainPercentage * mlDataPairs.size() / 100);
         BasicMLDataSet trainSet = new BasicMLDataSet(mlDataPairs.subList(0, trainCount));
-        BasicMLDataSet validationSet = new BasicMLDataSet(mlDataPairs.subList(0, mlDataPairs.size() - trainCount));
-        BasicNetwork network = new BasicNetwork();
-        network.addLayer(new BasicLayer(null, true, 2));
-        network.addLayer(new BasicLayer(new ActivationSigmoid(), true, 3));
-        network.addLayer(new BasicLayer(new ActivationSigmoid(), false, 1));
-        network.getStructure().finalizeStructure();
-        network.reset();
-        /*
-        BasicMLDataSet trainSet = new BasicMLDataSet(mlDataPairs.subList(0, trainCount));
+        BasicMLDataSet validationSet = new BasicMLDataSet(mlDataPairs.subList(trainCount, mlDataPairs.size()));
+//        BasicNetwork network = new BasicNetwork();
+//        network.addLayer(new BasicLayer(null, true, 2));
+//        network.addLayer(new BasicLayer(new ActivationSigmoid(), true, 3));
+//        network.addLayer(new BasicLayer(new ActivationSigmoid(), false, 1));
+//        network.getStructure().finalizeStructure();
+//        network.reset();
         BasicNetwork network = getNetwork(networkConfigData);
-        MLTrain train = new Backpropagation(network, trainSet);
-        ErrorCalculation errorCalculation = new ErrorCalculation();
-        for (int i = 0; i < 500; i++) {
-            train.iteration();
-        }
-        TrainResult trainResult = new TrainResult(tabularData.metaTabularData.outputs);
-         */
-        //MLDataSet trainingSet = new BasicMLDataSet(XOR_INPUT, XOR_IDEAL);
         MLTrain train = new ResilientPropagation(network, trainSet);
-        ErrorCalculation errorCalculation = new ErrorCalculation();
+        //MLDataSet trainingSet = new BasicMLDataSet(XOR_INPUT, XOR_IDEAL);
+//        MLTrain train = new ResilientPropagation(network, trainSet);
+//        ErrorCalculation errorCalculation = new ErrorCalculation();
         int epoch = 1;
         List<Double> trainError = new ArrayList<>();
         boolean stop = false;
@@ -104,17 +90,17 @@ public class TrainService extends Service<ResultData> {
                     + train.getError());
             epoch++;
             trainError.add(train.getError());
-            if (epoch == 50) {
+            if (epoch == 1000) {
                 stop = true;
             }
         } while (train.getError() > 0.01 && !stop);
 
         //set de entrenamiento
         TrainResult trainResult = fillTrainResult(trainSet, network);
-        //set validacio
-        // TrainResult validationResult = fillTrainResult(data, network);
+        //set validacion
+        TrainResult validationResult = fillTrainResult(validationSet, network);
         System.out.println("finish training");
-        return new ResultData(trainResult, null, trainError);
+        return new ResultData(trainResult, validationResult, trainError);
     }
 
     private TrainResult fillTrainResult(MLDataSet set, BasicNetwork network) {
@@ -130,6 +116,7 @@ public class TrainService extends Service<ResultData> {
                 String columnName = tabularData.metaTabularData.outputs.get(i);
                 MetaTabularDataCell metaTabularDataCell = tabularData.metaTabularData.metaCells.get(columnName);
                 double predicted = 0;
+                double result = 0;
                 double ideal = 0;
                 if (metaTabularDataCell.max <= 1 && metaTabularDataCell.min >= 0) {
                     ideal = pair.getIdeal().getData(i);
@@ -139,10 +126,18 @@ public class TrainService extends Service<ResultData> {
                     predicted = tabularData.metaTabularData.metaDataNormalized.get(columnName).deNormalize(output.getData(i));
                 }
                 //double ideal = tabularData.metaTabularData.metaDataNormalized.get(columnName).deNormalize(pair.getIdeal().getData(i));
-                trainValues.add(new TrainValue(ideal, predicted, metaTabularDataCell.min, metaTabularDataCell.max, calculate));
+                trainValues.add(new TrainValue(ideal, filterPrediction(predicted), metaTabularDataCell.min, metaTabularDataCell.max, calculate));
             }
         }
         return trainResult;
+    }
+
+    private double filterPrediction(double prediction) {
+        if (prediction > 0.5) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     private Double filter(Double predicted, MetaTabularDataCell metaTabularDataCell, NormalizedField normalizedField) {

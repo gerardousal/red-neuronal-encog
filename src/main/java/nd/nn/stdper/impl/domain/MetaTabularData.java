@@ -31,7 +31,6 @@ public class MetaTabularData {
         List<String> headers = new ArrayList<>(this.header.keySet());
 //        double[][] input = new double[rawData.size()][this.inputs.size()];
 //        double[][] output = new double[rawData.size()][this.outputs.size()];
-        int countrow = 0;
         for (List<Double> next : rawData) {
             try {
                 double[] normalizedVectorInput = new double[next.size() - this.outputs.size()];
@@ -50,7 +49,7 @@ public class MetaTabularData {
                     if (this.inputs.contains(headers.get(i))) {
                         // input[countrow][countInput] = age.normalize(doubleValue);
                         normalizedVectorInput[countInput] = doubleValue;
-                                countInput++;
+                        countInput++;
                     }
                     if (this.outputs.contains(headers.get(i))) {
                         // output[countrow][countIdeal] = age.normalize(doubleValue);
@@ -59,8 +58,6 @@ public class MetaTabularData {
                     }
                 }
                 mlDataPairs.add(new BasicMLDataPair(new BasicMLData(normalizedVectorInput), new BasicMLData(normalizedVectorIdeal)));
-                countrow++;
-
             } catch (Exception ex) {
                 System.err.println(ex.getMessage());
                 throw new Error("Error", ex);

@@ -24,11 +24,12 @@ public class ResultController implements Initializable {
     @FXML
     GridPane gridError;
 
-    public void setTrainResult(TrainResult trainResult, List<Double> errors) {
+    public void setTrainResult(TrainResult trainResult, TrainResult validationResult, List<Double> errors) {
         gridError.getChildren().clear();
         graphError(errors, 0);
-       // graphTraining(trainResult);
-        graphScatterPoints(trainResult);
+        // graphTraining(trainResult);
+        graphScatterPoints(trainResult, 1);
+        graphScatterPoints(validationResult, 2);
     }
 
     private void graphTraining(TrainResult trainResult) {
@@ -53,25 +54,26 @@ public class ResultController implements Initializable {
         }
     }
 
-    private void graphScatterPoints(TrainResult trainResult)
-    {
-        int count = 1;
+    private int graphScatterPoints(TrainResult trainResult, int count) {
         for (Map.Entry<String, List<TrainValue>> result : trainResult.data.entrySet()) {
             TrainValue trainValue1 = result.getValue().get(0);
-            final NumberAxis xAxis = new NumberAxis(0, result.getValue().size(), 1);
-            final NumberAxis yAxis = new NumberAxis(0, 1, 0.1);
+            final NumberAxis xAxis = new NumberAxis(0, result.getValue().size()+1, 4);
+            final NumberAxis yAxis = new NumberAxis(-0.1, 1.1, 0.1);
             ScatterChart scatterChart = new ScatterChart(xAxis, yAxis);
             xAxis.setLabel("Value");
             yAxis.setLabel("Data");
-            scatterChart.setTitle(result.getKey());
+            scatterChart.setTitle(result.getKey() + " " + result.getValue().stream().filter(resultValue -> resultValue.isGoodPrediction()).count() + "/" + result.getValue().size());
             XYChart.Series seriesIdeal = new XYChart.Series();
             XYChart.Series seriesPredicted = new XYChart.Series();
             seriesIdeal.setName("Ideal");
             seriesPredicted.setName("Predicted");
             int countValues = 0;
-            for (TrainValue trainValue : result.getValue()) {
-                seriesIdeal.getData().add(new XYChart.Data(countValues, trainValue.ideal));
-                seriesPredicted.getData().add(new XYChart.Data(countValues, trainValue.predicted));
+            for (int i = 0; i < result.getValue().size(); i++) {
+                if (i % 5 == 0 || result.getValue().size() < 50) {
+                    TrainValue trainValue = result.getValue().get(i);
+                    seriesIdeal.getData().add(new XYChart.Data(countValues, trainValue.ideal));
+                    seriesPredicted.getData().add(new XYChart.Data(countValues, trainValue.predicted));
+                }
                 countValues++;
             }
 
@@ -79,14 +81,15 @@ public class ResultController implements Initializable {
             gridError.add(scatterChart, 0, count);
             count++;
         }
+        return count;
     }
 
-    private void graphError(List<Double> error, int count) {
+    private int graphError(List<Double> error, int count) {
         long count1 = error.stream().distinct().count();
         double max = error.stream().max((number1, number2) -> Double.compare(number1, number2)).get();
         double min = error.stream().min((number1, number2) -> Double.compare(number1, number2)).get();
-        final NumberAxis xAxis = new NumberAxis(0, error.size(), 1);
-        final NumberAxis yAxis = new NumberAxis(min,max, 1);
+        final NumberAxis xAxis = new NumberAxis(0, error.size(), 10);
+        final NumberAxis yAxis = new NumberAxis(min, max, 10);
         xAxis.setLabel("Epoch");
         yAxis.setLabel("Error");
         LineChart<Number, Number> lineChart =
@@ -94,10 +97,13 @@ public class ResultController implements Initializable {
         XYChart.Series series = new XYChart.Series();
         series.setName("Error training");
         for (int i = 0; i < error.size(); i++) {
-            series.getData().add(new XYChart.Data(i, error.get(i)));
+            if (i % 40 == 0 || error.size() < 100) {
+                series.getData().add(new XYChart.Data(i, error.get(i)));
+            }
         }
         lineChart.getData().add(series);
         gridError.add(lineChart, 0, count);
+        return count;
     }
 
     @Override
